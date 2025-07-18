@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>羽毛球AA费用计算器 (独立场地费用版)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: white; font-size: 1.8rem; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .card { background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-block; text-decoration: none; text-align: center; min-height: 48px; line-height: 1.5; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; transform: translateY(-2px); }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-danger { background: #f56565; color: white; padding: 8px 16px; font-size: 14px; min-height: 40px; }
+        .btn-danger:hover { background: #e53e3e; }
+        .member-list { margin-top: 20px; }
+        .member-item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; }
+        .member-item input { flex: 1; min-width: 0; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 14px; }
+        .member-item input:focus { border-color: #667eea; outline: none; }
+        .member-item .name-input { flex: 2; }
+        .member-item .number-input { flex: 1; }
+        .result-section { background: #f8f9fa; padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .result-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-item { text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e9ecef; }
+        .summary-item .value { font-size: 1.2rem; font-weight: 700; color: #667eea; }
+        .summary-item .label { font-size: 0.9rem; color: #6c757d; margin-top: 5px; }
+        .result-list { margin-top: 20px; }
+        .result-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e9ecef; }
+        .result-item .name { font-weight: 600; }
+        .result-item .amount { font-weight: 700; font-size: 1.1rem; }
+        .result-item .positive { color: #28a745; }
+        .result-item .negative { color: #dc3545; }
+        .result-item .zero { color: #6c757d; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #6c757d; }
+        .empty-state h3 { margin-bottom: 10px; font-size: 1.2rem; }
+        .floating-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; transition: all 0.3s; }
+        .floating-btn:hover { background: #5a67d8; transform: scale(1.1); }
+        @media (max-width: 480px) { .container { padding: 15px; } .card { padding: 20px; } .member-item { flex-direction: column; align-items: stretch; } .member-item input { margin-bottom: 8px; } .result-summary { grid-template-columns: 1fr 1fr; } .header h1 { font-size: 1.5rem; } }
+        .toast { position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1001; transform: translateX(100%); transition: transform 0.3s; }
+        .toast.show { transform: translateX(0); }
+        .toast.error { background: #dc3545; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .loading.show { display: block; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏸 羽毛球AA费用计算器</h1>
+            <p style="color: rgba(255,255,255,0.9);">科学分摊，轻松结算</p>
+        </div>
+        <div class="card">
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="addMember()">+ 添加成员</button>
+            </div>
+            <div class="member-list" id="memberList">
+                <div class="empty-state">
+                    <h3>还没有成员</h3>
+                    <p>点击上方按钮添加成员开始计算</p>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 30px;">
+                <button class="btn btn-success" onclick="calculateAA()" style="width: 100%;">💰 计算AA费用</button>
+            </div>
+        </div>
+        <div class="card" id="resultCard" style="display: none;">
+            <h2 style="margin-bottom: 20px; color: #333;">💡 结算结果</h2>
+            <div class="result-summary" id="resultSummary"></div>
+            <div class="result-list" id="resultList"></div>
+        </div>
+    </div>
+    <div class="loading" id="loading"><div class="spinner"></div><p>正在计算中...</p></div>
+
+<script>
+class PreciseCalculator {
+  static multiply(a,b){const aS=a.toString(),bS=b.toString();const aD=(aS.split('.')[1]||'').length,bD=(bS.split('.')[1]||'').length;const total=aD+bD;const aI=parseInt(aS.replace('.','')),bI=parseInt(bS.replace('.',''));return (aI*bI)/Math.pow(10,total);}  static add(a,b){const aS=a.toString(),bS=b.toString();const aD=(aS.split('.')[1]||'').length,bD=(bS.split('.')[1]||'').length;const max=Math.max(aD,bD);const m=Math.pow(10,max);return (Math.round(a*m)+Math.round(b*m))/m;}  static subtract(a,b){const aS=a.toString(),bS=b.toString();const aD=(aS.split('.')[1]||'').length,bD=(bS.split('.')[1]||'').length;const max=Math.max(aD,bD);const m=Math.pow(10,max);return (Math.round(a*m)-Math.round(b*m))/m;}  static divide(a,b){return a/b;}  static round(n,d=2){const m=Math.pow(10,d);return Math.round(n*m)/m;}}
+
+function showToast(msg,type='success'){const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.classList.add('show');},100);setTimeout(()=>{t.classList.remove('show');setTimeout(()=>{document.body.removeChild(t);},300);},3000);}
+function showLoading(s){const l=document.getElementById('loading');s?l.classList.add('show'):l.classList.remove('show');}
+
+function addMember(){const list=document.getElementById('memberList');const empty=list.querySelector('.empty-state');if(empty) empty.remove();const item=document.createElement('div');item.className='member-item';item.innerHTML=`<input type="text" placeholder="成员姓名" class="name-input" required><input type="number" placeholder="订场片数" class="number-input" min="0" step="1" value="0"><input type="number" placeholder="个人场地单价(元)" class="number-input" min="0" step="0.01" value="0"><input type="number" placeholder="球费(元)" class="number-input" min="0" step="0.01" value="0"><button class="btn btn-danger" onclick="removeMember(this)">删除</button>`;list.appendChild(item);item.querySelectorAll('input').forEach(i=>i.addEventListener('input',validateInput));item.querySelector('.name-input').focus();}
+function removeMember(btn){const item=btn.closest('.member-item');item.remove();const list=document.getElementById('memberList');if(list.children.length===0){list.innerHTML=`<div class='empty-state'><h3>还没有成员</h3><p>点击上方按钮添加成员开始计算</p></div>`;}}
+function validateInput(e){const i=e.target;const v=i.value.trim();if(i.type==='text'){i.style.borderColor=v.length>0?'#28a745':'#dc3545';}else{const num=parseFloat(v);i.style.borderColor=!isNaN(num)&&num>=0?'#28a745':'#dc3545';}}
+function calculateAA(){const items=document.querySelectorAll('.member-item');if(items.length===0){showToast('请至少添加一个成员！','error');return;}let members=[];for(const item of items){const inp=item.querySelectorAll('input');const name=inp[0].value.trim();const slices=parseInt(inp[1].value)||0;const price=parseFloat(inp[2].value)||0;const shuttle=parseFloat(inp[3].value)||0;if(!name){showToast('请填写所有成员的姓名！','error');return;}if(slices<0||price<0||shuttle<0){showToast('数值不能为负！','error');return;}members.push({name,slices,price,shuttle});}
+showLoading(true);setTimeout(()=>{const results=performCalculation(members);displayResults(results);showLoading(false);showToast('计算完成！','success');},800);}
+function performCalculation(mems){const detailed=mems.map(m=>{const courtFee=PreciseCalculator.multiply(m.slices,m.price);const expense=PreciseCalculator.add(courtFee,m.shuttle);return {...m,courtFee,expense};});const totalCourt=detailed.reduce((s,r)=>PreciseCalculator.add(s,r.courtFee),0);const totalSlices=detailed.reduce((s,r)=>s+r.slices,0);const totalExpense=detailed.reduce((s,r)=>PreciseCalculator.add(s,r.expense),0);const avg=PreciseCalculator.divide(totalExpense,mems.length);const finals=detailed.map(d=>({...d,avgExpense:avg,difference:PreciseCalculator.subtract(d.expense,avg)}));return {totalSlices,totalCourtFee:totalCourt,totalExpense,avgExpense:avg,memberCount:mems.length,results:finals};}
+function displayResults(res){const card=document.getElementById('resultCard');const sum=document.getElementById('resultSummary');const list=document.getElementById('resultList');sum.innerHTML=`<div class='summary-item'><div class='value'>${res.totalSlices}</div><div class='label'>订场片数</div></div><div class='summary-item'><div class='value'>¥${PreciseCalculator.round(res.totalCourtFee)}</div><div class='label'>场地费用</div></div><div class='summary-item'><div class='value'>¥${PreciseCalculator.round(res.totalExpense)}</div><div class='label'>总费用</div></div><div class='summary-item'><div class='value'>${res.memberCount}</div><div class='label'>参与人数</div></div><div class='summary-item'><div class='value'>¥${PreciseCalculator.round(res.avgExpense)}</div><div class='label'>人均费用</div></div>`;list.innerHTML=res.results.map(r=>{const diff=r.difference;const abs=PreciseCalculator.round(Math.abs(diff));let cls,txt;if(diff>0.01){cls='positive';txt=`应收 ¥${abs}`;}else if(diff<-0.01){cls='negative';txt=`应付 ¥${abs}`;}else{cls='zero';txt='无需收付';}return `<div class='result-item'><div><div class='name'>${r.name}</div><div style='font-size:0.9rem;color:#6c757d;'>订场${r.slices}片 × ¥${PreciseCalculator.round(r.price)} + 球费¥${PreciseCalculator.round(r.shuttle)} = ¥${PreciseCalculator.round(r.expense)}</div></div><div class='amount ${cls}'>${txt}</div></div>`;}).join('');card.style.display='block';card.scrollIntoView({behavior:'smooth'});}
+// 自动配置环境 & 示例数据
+window.addEventListener('DOMContentLoaded',()=>{showToast('环境配置完成，可离线使用！');if(confirm('是否加载示例数据进行演示？')){addMember();let items=document.querySelectorAll('.member-item');items[0].querySelectorAll('input')[0].value='张三';items[0].querySelectorAll('input')[1].value='2';items[0].querySelectorAll('input')[2].value='40';items[0].querySelectorAll('input')[3].value='30';addMember();items=document.querySelectorAll('.member-item');items[1].querySelectorAll('input')[0].value='李四';items[1].querySelectorAll('input')[1].value='1';items[1].querySelectorAll('input')[2].value='50';items[1].querySelectorAll('input')[3].value='20';}});
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){calculateAA();}else if(e.ctrlKey&&e.key==='n'){e.preventDefault();addMember();}});
+window.addEventListener('beforeunload',e=>{if(document.querySelectorAll('.member-item').length>0){e.preventDefault();e.returnValue='确定要离开吗？当前数据将会丢失。';}});
+</script>
+</body>
+</html>
