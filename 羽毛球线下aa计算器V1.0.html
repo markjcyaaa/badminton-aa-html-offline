@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>羽毛球AA费用计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            min-height: 48px;
+            line-height: 1.5;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+            min-height: 40px;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .member-list {
+            margin-top: 20px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .member-item input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .member-item input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .member-item .name-input {
+            flex: 2;
+        }
+
+        .member-item .number-input {
+            flex: 1;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-item .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .summary-item .label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .result-list {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .result-item .name {
+            font-weight: 600;
+        }
+
+        .result-item .amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .result-item .positive {
+            color: #28a745;
+        }
+
+        .result-item .negative {
+            color: #dc3545;
+        }
+
+        .result-item .zero {
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .floating-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .member-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .member-item input {
+                margin-bottom: 8px;
+            }
+
+            .result-summary {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏸 羽毛球AA费用计算器</h1>
+            <p style="color: rgba(255,255,255,0.9);">科学分摊，轻松结算</p>
+        </div>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="courtPrice">场地单价（元/片）</label>
+                <input type="number" id="courtPrice" placeholder="请输入场地单价" min="0" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="addMember()">+ 添加成员</button>
+            </div>
+
+            <div class="member-list" id="memberList">
+                <div class="empty-state">
+                    <h3>还没有成员</h3>
+                    <p>点击上方按钮添加成员开始计算</p>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 30px;">
+                <button class="btn btn-success" onclick="calculateAA()" style="width: 100%;">
+                    💰 计算AA费用
+                </button>
+            </div>
+        </div>
+
+        <div class="card" id="resultCard" style="display: none;">
+            <h2 style="margin-bottom: 20px; color: #333;">💡 结算结果</h2>
+            
+            <div class="result-summary" id="resultSummary">
+                <!-- 汇总信息将在这里显示 -->
+            </div>
+
+            <div class="result-list" id="resultList">
+                <!-- 个人结算结果将在这里显示 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>正在计算中...</p>
+    </div>
+
+    <script>
+        // 高精度计算类
+        class PreciseCalculator {
+            static multiply(a, b) {
+                const aStr = a.toString();
+                const bStr = b.toString();
+                const aDecimals = (aStr.split('.')[1] || '').length;
+                const bDecimals = (bStr.split('.')[1] || '').length;
+                const totalDecimals = aDecimals + bDecimals;
+                
+                const aInt = parseInt(aStr.replace('.', ''));
+                const bInt = parseInt(bStr.replace('.', ''));
+                
+                return (aInt * bInt) / Math.pow(10, totalDecimals);
+            }
+
+            static add(a, b) {
+                const aStr = a.toString();
+                const bStr = b.toString();
+                const aDecimals = (aStr.split('.')[1] || '').length;
+                const bDecimals = (bStr.split('.')[1] || '').length;
+                const maxDecimals = Math.max(aDecimals, bDecimals);
+                
+                const multiplier = Math.pow(10, maxDecimals);
+                const aInt = Math.round(a * multiplier);
+                const bInt = Math.round(b * multiplier);
+                
+                return (aInt + bInt) / multiplier;
+            }
+
+            static subtract(a, b) {
+                const aStr = a.toString();
+                const bStr = b.toString();
+                const aDecimals = (aStr.split('.')[1] || '').length;
+                const bDecimals = (bStr.split('.')[1] || '').length;
+                const maxDecimals = Math.max(aDecimals, bDecimals);
+                
+                const multiplier = Math.pow(10, maxDecimals);
+                const aInt = Math.round(a * multiplier);
+                const bInt = Math.round(b * multiplier);
+                
+                return (aInt - bInt) / multiplier;
+            }
+
+            static divide(a, b) {
+                return a / b;
+            }
+
+            static round(num, decimals = 2) {
+                const multiplier = Math.pow(10, decimals);
+                return Math.round(num * multiplier) / multiplier;
+            }
+        }
+
+        // 全局变量
+        let members = [];
+        let memberCounter = 0;
+
+        // 页面加载完成后自动配置环境
+        document.addEventListener('DOMContentLoaded', function() {
+            // 自动配置运行环境
+            configureEnvironment();
+            
+            // 预设示例数据（可选）
+            if (confirm('是否加载示例数据进行演示？')) {
+                loadSampleData();
+            }
+        });
+
+        function configureEnvironment() {
+            // 设置页面标题
+            document.title = '羽毛球AA费用计算器';
+            
+            // 配置viewport
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+            }
+            
+            // 显示配置成功提示
+            showToast('环境配置完成，可以开始使用！', 'success');
+            
+            // 为输入框添加自动格式化
+            document.getElementById('courtPrice').addEventListener('input', function(e) {
+                const value = parseFloat(e.target.value);
+                if (!isNaN(value) && value > 0) {
+                    e.target.style.borderColor = '#28a745';
+                } else {
+                    e.target.style.borderColor = '#e1e5e9';
+                }
+            });
+        }
+
+        function loadSampleData() {
+            // 设置场地单价
+            document.getElementById('courtPrice').value = '50';
+            
+            // 添加示例成员
+            addMember();
+            const members = document.querySelectorAll('.member-item');
+            
+            if (members.length > 0) {
+                const inputs = members[0].querySelectorAll('input');
+                inputs[0].value = '张三';
+                inputs[1].value = '2';
+                inputs[2].value = '30';
+            }
+            
+            addMember();
+            if (members.length > 1) {
+                const inputs = members[1].querySelectorAll('input');
+                inputs[0].value = '李四';
+                inputs[1].value = '0';
+                inputs[2].value = '15';
+            }
+            
+            addMember();
+            if (members.length > 2) {
+                const inputs = members[2].querySelectorAll('input');
+                inputs[0].value = '王五';
+                inputs[1].value = '1';
+                inputs[2].value = '0';
+            }
+        }
+
+        function addMember() {
+            const memberList = document.getElementById('memberList');
+            
+            // 移除空状态
+            const emptyState = memberList.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            memberCounter++;
+            const memberItem = document.createElement('div');
+            memberItem.className = 'member-item';
+            memberItem.innerHTML = `
+                <input type="text" placeholder="成员姓名" class="name-input" required>
+                <input type="number" placeholder="订场片数" class="number-input" min="0" step="1" value="0">
+                <input type="number" placeholder="球费(元)" class="number-input" min="0" step="0.01" value="0">
+                <button class="btn btn-danger" onclick="removeMember(this)">删除</button>
+            `;
+            
+            memberList.appendChild(memberItem);
+            
+            // 自动聚焦到姓名输入框
+            const nameInput = memberItem.querySelector('.name-input');
+            nameInput.focus();
+            
+            // 添加输入验证
+            const inputs = memberItem.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', validateInput);
+            });
+        }
+
+        function removeMember(button) {
+            const memberItem = button.closest('.member-item');
+            memberItem.remove();
+            
+            // 检查是否需要显示空状态
+            const memberList = document.getElementById('memberList');
+            if (memberList.children.length === 0) {
+                memberList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>还没有成员</h3>
+                        <p>点击上方按钮添加成员开始计算</p>
+                    </div>
+                `;
+            }
+        }
+
+        function validateInput(e) {
+            const input = e.target;
+            const value = input.value.trim();
+            
+            if (input.type === 'text') {
+                // 验证姓名
+                if (value.length > 0) {
+                    input.style.borderColor = '#28a745';
+                } else {
+                    input.style.borderColor = '#dc3545';
+                }
+            } else if (input.type === 'number') {
+                // 验证数字
+                const num = parseFloat(value);
+                if (!isNaN(num) && num >= 0) {
+                    input.style.borderColor = '#28a745';
+                } else {
+                    input.style.borderColor = '#dc3545';
+                }
+            }
+        }
+
+        function calculateAA() {
+            const courtPrice = parseFloat(document.getElementById('courtPrice').value);
+            const memberItems = document.querySelectorAll('.member-item');
+            
+            // 验证输入
+            if (!courtPrice || courtPrice <= 0) {
+                showToast('请输入有效的场地单价！', 'error');
+                return;
+            }
+            
+            if (memberItems.length === 0) {
+                showToast('请至少添加一个成员！', 'error');
+                return;
+            }
+            
+            // 显示加载状态
+            showLoading(true);
+            
+            // 模拟计算过程
+            setTimeout(() => {
+                try {
+                    const members = [];
+                    let hasError = false;
+                    
+                    memberItems.forEach(item => {
+                        const inputs = item.querySelectorAll('input');
+                        const name = inputs[0].value.trim();
+                        const slices = parseInt(inputs[1].value) || 0;
+                        const shuttleCost = parseFloat(inputs[2].value) || 0;
+                        
+                        if (!name) {
+                            showToast('请填写所有成员的姓名！', 'error');
+                            hasError = true;
+                            return;
+                        }
+                        
+                        if (slices < 0 || shuttleCost < 0) {
+                            showToast('订场片数和球费不能为负数！', 'error');
+                            hasError = true;
+                            return;
+                        }
+                        
+                        members.push({
+                            name,
+                            slices,
+                            shuttleCost
+                        });
+                    });
+                    
+                    if (hasError) {
+                        showLoading(false);
+                        return;
+                    }
+                    
+                    // 执行计算
+                    const results = performCalculation(members, courtPrice);
+                    
+                    // 显示结果
+                    displayResults(results);
+                    
+                    showLoading(false);
+                    showToast('计算完成！', 'success');
+                    
+                } catch (error) {
+                    showLoading(false);
+                    showToast('计算出错，请检查输入数据！', 'error');
+                    console.error('计算错误:', error);
+                }
+            }, 1000);
+        }
+
+        function performCalculation(members, courtPrice) {
+            // 计算总场地费 = 所有人订场片数之和 * 场地单价
+            const totalSlices = members.reduce((sum, member) => sum + member.slices, 0);
+            const totalCourtFee = PreciseCalculator.multiply(totalSlices, courtPrice);
+            
+            // 计算每个人的支出和相关数据
+            const results = members.map(member => {
+                // 个人支出 = 个人订场片数 * 场地单价 + 球费
+                const personalCourtFee = PreciseCalculator.multiply(member.slices, courtPrice);
+                const personalExpense = PreciseCalculator.add(personalCourtFee, member.shuttleCost);
+                
+                return {
+                    name: member.name,
+                    slices: member.slices,
+                    shuttleCost: member.shuttleCost,
+                    personalCourtFee,
+                    personalExpense
+                };
+            });
+            
+            // 计算总费用 = 所有人个人支出之和
+            const totalExpense = results.reduce((sum, result) => 
+                PreciseCalculator.add(sum, result.personalExpense), 0);
+            
+            // 计算人均费用
+            const avgExpense = PreciseCalculator.divide(totalExpense, members.length);
+            
+            // 计算每人的差值
+            const finalResults = results.map(result => ({
+                ...result,
+                avgExpense,
+                difference: PreciseCalculator.subtract(result.personalExpense, avgExpense)
+            }));
+            
+            return {
+                totalSlices,
+                totalCourtFee,
+                totalExpense,
+                avgExpense,
+                memberCount: members.length,
+                results: finalResults
+            };
+        }
+
+        function displayResults(calculationResults) {
+            const resultCard = document.getElementById('resultCard');
+            const resultSummary = document.getElementById('resultSummary');
+            const resultList = document.getElementById('resultList');
+            
+            // 显示汇总信息
+            resultSummary.innerHTML = `
+                <div class="summary-item">
+                    <div class="value">${calculationResults.totalSlices}</div>
+                    <div class="label">订场片数</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">¥${PreciseCalculator.round(calculationResults.totalCourtFee)}</div>
+                    <div class="label">场地费用</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">¥${PreciseCalculator.round(calculationResults.totalExpense)}</div>
+                    <div class="label">总费用</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${calculationResults.memberCount}</div>
+                    <div class="label">参与人数</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">¥${PreciseCalculator.round(calculationResults.avgExpense)}</div>
+                    <div class="label">人均费用</div>
+                </div>
+            `;
+            
+            // 显示个人结算结果
+            resultList.innerHTML = calculationResults.results.map(result => {
+                const difference = result.difference;
+                const absAmount = Math.abs(difference);
+                const roundedAmount = PreciseCalculator.round(absAmount);
+                
+                let amountClass, statusText;
+                if (difference > 0.01) {
+                    amountClass = 'positive';
+                    statusText = `应收 ¥${roundedAmount}`;
+                } else if (difference < -0.01) {
+                    amountClass = 'negative';
+                    statusText = `应付 ¥${roundedAmount}`;
+                } else {
+                    amountClass = 'zero';
+                    statusText = '无需收付';
+                }
+                
+                return `
+                    <div class="result-item">
+                        <div>
+                            <div class="name">${result.name}</div>
+                            <div style="font-size: 0.9rem; color: #6c757d;">
+                                订场${result.slices}片 + 球费¥${PreciseCalculator.round(result.shuttleCost)} = ¥${PreciseCalculator.round(result.personalExpense)}
+                            </div>
+                        </div>
+                        <div class="amount ${amountClass}">${statusText}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // 显示结果区域
+            resultCard.style.display = 'block';
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            if (show) {
+                loading.classList.add('show');
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                calculateAA();
+            } else if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addMember();
+            }
+        });
+
+        // 页面卸载前的提醒
+        window.addEventListener('beforeunload', function(e) {
+            const memberItems = document.querySelectorAll('.member-item');
+            if (memberItems.length > 0) {
+                e.preventDefault();
+                e.returnValue = '确定要离开吗？当前数据将会丢失。';
+            }
+        });
+    </script>
+</body>
+</html>
