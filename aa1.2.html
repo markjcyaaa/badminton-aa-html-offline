@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>🏸 羽毛球AA费用计算器</title>
+  <style>
+    /* 全局样式 */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: #2c3e50;
+    }
+    button {
+      background: #1abc9c;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      margin: 4px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #16a085;
+    }
+    #members {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 16px;
+    }
+    .member-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .member-row input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    .member-row button {
+      background: #e74c3c;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+    .member-row button:hover {
+      background: #c0392b;
+    }
+    #result {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 16px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 12px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏸 羽毛球AA费用计算器</h1>
+
+  <div>
+    <button id="addMemberBtn">+ 添加成员</button>
+    <button id="calcBtn">💰 计算AA费用</button>
+  </div>
+
+  <div id="members"></div>
+
+  <div id="result">💡 结算结果</div>
+
+  <script>
+    const membersEl = document.getElementById('members');
+    const resultEl = document.getElementById('result');
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const calcBtn = document.getElementById('calcBtn');
+
+    let isFirst = true;
+
+    function createMemberRow(name = '', fee = '', time = '', ball = '') {
+      const row = document.createElement('div');
+      row.className = 'member-row';
+
+      const nameI = document.createElement('input');
+      nameI.placeholder = '姓名';
+      nameI.value = name;
+      nameI.type = 'text';
+
+      const feeI = document.createElement('input');
+      feeI.placeholder = '订场费用';
+      feeI.value = fee;
+      feeI.type = 'number';
+      feeI.min = '0';
+
+      const timeI = document.createElement('input');
+      timeI.placeholder = '上场时间';
+      timeI.value = time;
+      timeI.type = 'number';
+      timeI.min = '0.1';
+      timeI.step = '0.1';
+
+      const ballI = document.createElement('input');
+      ballI.placeholder = '球费';
+      ballI.value = ball;
+      ballI.type = 'number';
+      ballI.min = '0';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '删除';
+      removeBtn.onclick = () => {
+        membersEl.removeChild(row);
+      };
+
+      row.append(nameI, feeI, timeI, ballI, removeBtn);
+      membersEl.appendChild(row);
+    }
+
+    addMemberBtn.onclick = () => {
+      if (isFirst) {
+        // 首次加载的空白行
+        createMemberRow('', '', '', '');
+        isFirst = false;
+      } else {
+        // 后续行默认
+        createMemberRow('球友', 0, 1, 0);
+      }
+    };
+
+    calcBtn.onclick = () => {
+      const rows = Array.from(membersEl.children);
+      if (!rows.length) {
+        resultEl.textContent = '请先添加至少一个成员。';
+        return;
+      }
+      const data = rows.map(r => {
+        const [n, f, t, b] = r.querySelectorAll('input');
+        return {
+          name: n.value.trim() || 'N/A',
+          fee: parseFloat(f.value) || 0,
+          time: parseFloat(t.value) || 0,
+          ball: parseFloat(b.value) || 0
+        };
+      });
+      const totalTime = data.reduce((s, m) => s + m.time, 0);
+      const totalPaid = data.reduce((s, m) => s + m.fee + m.ball, 0);
+      const results = data.map(m => {
+        const should = totalPaid * (m.time / totalTime);
+        return { name: m.name, need: should - (m.fee + m.ball) };
+      }).sort((a, b) => b.need - a.need);
+
+      let out = '需要补/退金额：\n';
+      results.forEach(r => {
+        const sign = r.need >= 0 ? '' : '-';
+        out += `${r.name}: ${sign}¥${Math.abs(r.need).toFixed(2)}\n`;
+      });
+      resultEl.textContent = out;
+    };
+
+    // 如果想页面载入即有一行空白，可取消下面注释
+    createMemberRow('', '', '', '');
+  </script>
+</body>
+</html>
